@@ -2,8 +2,6 @@
 
 **fly-more**
 
-Ignores flight stamina restrictions
-
-\tera-proxy\node_modules\tera-data\map\protocol.334245
-
-S_CANT_FLY_ANYMORE = 5904
+\tera-proxy\node_modules\tera-data\map\protocol.339842
+下記を追加してね
+S_CANT_FLY_ANYMORE = 22683
