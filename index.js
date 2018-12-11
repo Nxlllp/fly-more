@@ -29,7 +29,7 @@ module.exports = function FlyMore(mod) {
 	})
 
 	mod.hook('S_SKILL_CATEGORY', 3, event => { if(event.category === CATEGORY_GLOBAL) mountDisabled = !event.enabled })
-	mod.hook('S_USER_STATUS', 2, event => { if(event.gameId === (gameId)) inCombat = event.status === 1 })
+	mod.hook('S_USER_STATUS', 2, event => { if(event.gameId.equals(gameId)) inCombat = event.status === 1 })
 
 	mod.hook('C_START_SKILL', 7, event => {
 		if(event.skill.id === mountSkill || event.skill.id === SKILL_FLYING_DISMOUNT) {
@@ -39,7 +39,7 @@ module.exports = function FlyMore(mod) {
 	})
 
 	mod.hook('S_MOUNT_VEHICLE', 2, {order: 10}, event => {
-		if(event.gameId === (gameId)) {
+		if(event.gameId.equals(gameId)) {
 			const fakeMounted = mountSkill !== -1
 
 			serverMounted = true
@@ -50,7 +50,7 @@ module.exports = function FlyMore(mod) {
 	})
 
 	mod.hook('S_UNMOUNT_VEHICLE', 2, {order: 10}, event => {
-		if(!event.gameId === (gameId)) return
+		if(!event.gameId.equals(gameId)) return
 
 		serverMounted = false
 
@@ -67,7 +67,7 @@ module.exports = function FlyMore(mod) {
 
 	function tryRemount() {
 		if(!mountDisabled && !inCombat) {
-			mod.send('C_START_SKILL', mod.base.majorPatchVersion < 74 ? 6 : 7, {
+			mod.send('C_START_SKILL', 7, {
 				skill: mountSkill,
 				w: location.dir,
 				loc: location.pos,
