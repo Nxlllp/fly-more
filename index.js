@@ -3,7 +3,7 @@
 const CATEGORY_GLOBAL = 9999,
 	SKILL_FLYING_DISMOUNT = 65000001
 
-module.exports = function FlyMore(dispatch) {
+module.exports = function FlyMore(mod) {
 	let gameId = null,
 		location = null,
 		outOfEnergy = false,
@@ -14,13 +14,13 @@ module.exports = function FlyMore(dispatch) {
 		serverMounted = false,
 		remountTimer = null
 
-	dispatch.hook('S_LOGIN', 10, event => { ({gameId} = event) })
+	mod.hook('S_LOGIN', 10, event => { ({gameId} = event) })
 
-	dispatch.hook('S_CANT_FLY_ANYMORE', 'raw', () => false)
-	dispatch.hook('S_PLAYER_CHANGE_FLIGHT_ENERGY', 1, event => { outOfEnergy = event.energy === 0 })
+	mod.hook('S_CANT_FLY_ANYMORE', 'raw', () => false)
+	mod.hook('S_PLAYER_CHANGE_FLIGHT_ENERGY', 1, event => { outOfEnergy = event.energy === 0 })
 
-	dispatch.hook('C_PLAYER_LOCATION', 5, event => { location = {flying: false, pos: event.loc, dir: event.w} })
-	dispatch.hook('C_PLAYER_FLYING_LOCATION', 4, event => {
+	mod.hook('C_PLAYER_LOCATION', 5, event => { location = {flying: false, pos: event.loc, dir: event.w} })
+	mod.hook('C_PLAYER_FLYING_LOCATION', 4, event => {
 		location = {flying: true, pos: event.loc, dir: event.w}
 		if(outOfEnergy && event.type !== 7 && event.type !== 8) {
 			event.type = 7
@@ -28,18 +28,18 @@ module.exports = function FlyMore(dispatch) {
 		}
 	})
 
-	dispatch.hook('S_SKILL_CATEGORY', 3, event => { if(event.category === CATEGORY_GLOBAL) mountDisabled = !event.enabled })
-	dispatch.hook('S_USER_STATUS', 2, event => { if(event.gameId.equals(gameId)) inCombat = event.status === 1 })
+	mod.hook('S_SKILL_CATEGORY', 3, event => { if(event.category === CATEGORY_GLOBAL) mountDisabled = !event.enabled })
+	mod.hook('S_USER_STATUS', 2, event => { if(event.gameId === (gameId)) inCombat = event.status === 1 })
 
-	dispatch.hook('C_START_SKILL', dispatch.base.majorPatchVersion < 74 ? 6 : 7, event => {
+	mod.hook('C_START_SKILL', 7, event => {
 		if(event.skill.id === mountSkill || event.skill.id === SKILL_FLYING_DISMOUNT) {
 			dismountByUser = true
 			mountSkill = -1
 		}
 	})
 
-	dispatch.hook('S_MOUNT_VEHICLE', 2, {order: 10}, event => {
-		if(event.gameId.equals(gameId)) {
+	mod.hook('S_MOUNT_VEHICLE', 2, {order: 10}, event => {
+		if(event.gameId === (gameId)) {
 			const fakeMounted = mountSkill !== -1
 
 			serverMounted = true
@@ -49,8 +49,8 @@ module.exports = function FlyMore(dispatch) {
 		}
 	})
 
-	dispatch.hook('S_UNMOUNT_VEHICLE', 2, {order: 10}, event => {
-		if(!event.gameId.equals(gameId)) return
+	mod.hook('S_UNMOUNT_VEHICLE', 2, {order: 10}, event => {
+		if(!event.gameId === (gameId)) return
 
 		serverMounted = false
 
@@ -67,7 +67,7 @@ module.exports = function FlyMore(dispatch) {
 
 	function tryRemount() {
 		if(!mountDisabled && !inCombat) {
-			dispatch.send('C_START_SKILL', dispatch.base.majorPatchVersion < 74 ? 6 : 7, {
+			mod.send('C_START_SKILL', mod.base.majorPatchVersion < 74 ? 6 : 7, {
 				skill: mountSkill,
 				w: location.dir,
 				loc: location.pos,
@@ -75,13 +75,13 @@ module.exports = function FlyMore(dispatch) {
 			})
 			remountTimer = setTimeout(() => {
 				if(!serverMounted) {
-					dispatch.send('S_UNMOUNT_VEHICLE', 2, {gameId, skill: mountSkill})
+					mod.send('S_UNMOUNT_VEHICLE', 2, {gameId, skill: mountSkill})
 					mountSkill = -1
 				}
 			}, 1000)
 		}
 		else {
-			dispatch.send('S_UNMOUNT_VEHICLE', 2, {gameId, skill: mountSkill})
+			mod.send('S_UNMOUNT_VEHICLE', 2, {gameId, skill: mountSkill})
 			mountSkill = -1
 		}
 	}
