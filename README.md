@@ -6,4 +6,6 @@
 
 下記を追加してね
 
-S_CANT_FLY_ANYMORE = 22683
+S_CANT_FLY_ANYMORE = 62896
+
+2018.12.22 update
